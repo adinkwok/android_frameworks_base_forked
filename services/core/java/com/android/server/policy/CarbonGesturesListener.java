@@ -21,7 +21,11 @@ package com.android.server.policy;
 
 import static java.lang.Math.abs;
 import android.content.Context;
+import android.content.res.Configuration;
+import android.graphics.Point;
+import android.hardware.display.DisplayManagerGlobal;
 import android.util.Slog;
+import android.view.Display;
 import android.view.MotionEvent;
 import android.view.WindowManagerPolicy.PointerEventListener;
 
@@ -32,7 +36,7 @@ public class CarbonGesturesListener implements PointerEventListener {
     private static final long SWIPE_TIMEOUT_MS = 500;
     private static final int MAX_TRACKED_POINTERS = 32;
     private static final int UNTRACKED_POINTER = -1;
-    private static final int SWIPE_DISTANCE = 350;
+    private static int SWIPE_DISTANCE;
     private int GESTURE_N_SWIPE_MASK = 1;
     private Directions N_SWIPE_DIRECTION = Directions.INVALID;
     private final Callbacks mCallbacks;
@@ -40,16 +44,52 @@ public class CarbonGesturesListener implements PointerEventListener {
     private final float[] mDownX = new float[MAX_TRACKED_POINTERS];
     private final float[] mDownY = new float[MAX_TRACKED_POINTERS];
     private final long[] mDownTime = new long[MAX_TRACKED_POINTERS];
+    private final int mFireable;
     private int mDownPointers;
     private boolean mSwipeFireable = false;
     private int mSwipeMask = 1;
 
     public CarbonGesturesListener(Context paramContext, int fingers, Directions direction, Callbacks callbacks) {
+        this(paramContext, fingers, direction, 0, callbacks);
+    }
+
+    public CarbonGesturesListener(Context paramContext, int fingers, Directions direction, int navigation, Callbacks callbacks) {
         NUM_POINTER_GESTURE = fingers;
         N_SWIPE_DIRECTION = direction;
         for (int i = 0; i < fingers; i++) {
             GESTURE_N_SWIPE_MASK |= 1 << i + 1;
         }
+
+        Display display = DisplayManagerGlobal.getInstance()
+                .getRealDisplay(Display.DEFAULT_DISPLAY);
+        Point size = new Point();
+        display.getRealSize(size);
+
+        final int orientation = mContext.getResources().getConfiguration().orientation;
+        final int sideX;
+        final int sideY;
+        if (orientation == Configuration.ORIENTATION_PORTRAIT) {
+            sideX == size.x;
+            sideY == size.y;
+        } else {
+            sideX == size.y;
+            sideY == size.x;
+        }
+
+        if (sideX >= 1440) {
+            SWIPE_DISTANCE = sideX / 7;
+        } else if (size.x >= 1080) {
+            SWIPE_DISTANCE = sideX / 5;
+        } else {
+            SWIPE_DISTANCE = sideX / 4;
+        }
+        if (navigation != 0) {
+            mFireable = sideY - SWIPE_DISTANCE;
+        } else {
+            SWIPE_DISTANCE = (int) (SWIPE_DISTANCE * 1.2);
+            mFireable = 0;
+        }
+
         mCallbacks = checkNull("callbacks", callbacks);
     }
 
@@ -149,31 +189,42 @@ public class CarbonGesturesListener implements PointerEventListener {
         final float sizeInY = fromY - y;
         final float abssizeInX = Math.abs(sizeInX);
         final float abssizeInY = Math.abs(sizeInY);
-        switch (N_SWIPE_DIRECTION) {
-            case UP:
-            if (abssizeInY > abssizeInX && sizeInY > SWIPE_DISTANCE) {
-                if (DEBUG) Slog.d(TAG, "detected UP Gesture on Pointer: "+ i);
-                valid = true;
+
+        final float fireableVar;
+        final int orientation = mContext.getResources().getConfiguration().orientation;
+        if (orientation == Configuration.ORIENTATION_PORTRAIT) {
+            fireableVar = fromY;
+        } else {
+            fireableVar = fromX;
+        }
+
+        if (fireableVar >= mFireable) {
+            switch (N_SWIPE_DIRECTION) {
+                case UP:
+                if (abssizeInY > abssizeInX && sizeInY > SWIPE_DISTANCE) {
+                    if (DEBUG) Slog.d(TAG, "detected UP Gesture on Pointer: "+ i);
+                    valid = true;
+                }
+                break;
+                case DOWN:
+                if (abssizeInY > abssizeInX && sizeInY < -1.0f * SWIPE_DISTANCE) {
+                    if (DEBUG) Slog.d(TAG, "detected DOWN Gesture on Pointer: "+ i);
+                    valid = true;
+                }
+                break;
+                case LEFT:
+                if (abssizeInY < abssizeInX && sizeInX > SWIPE_DISTANCE) {
+                    if (DEBUG) Slog.d(TAG, "detected LEFT Gesture on Pointer: "+ i);
+                    valid = true;
+                }
+                break;
+                case RIGHT:
+                if (abssizeInY < abssizeInX && sizeInX < -1.0f * SWIPE_DISTANCE) {
+                    if (DEBUG) Slog.d(TAG, "detected RIGHT Gesture on Pointer: "+ i);
+                    valid = true;
+                }
+                break;
             }
-            break;
-            case DOWN:
-            if (abssizeInY > abssizeInX && sizeInY < -1.0f * SWIPE_DISTANCE) {
-                if (DEBUG) Slog.d(TAG, "detected DOWN Gesture on Pointer: "+ i);
-                valid = true;
-            }
-            break;
-            case LEFT:
-            if (abssizeInY < abssizeInX && sizeInX > SWIPE_DISTANCE) {
-                if (DEBUG) Slog.d(TAG, "detected LEFT Gesture on Pointer: "+ i);
-                valid = true;
-            }
-            break;
-            case RIGHT:
-            if (abssizeInY < abssizeInX && sizeInX < -1.0f * SWIPE_DISTANCE) {
-                if (DEBUG) Slog.d(TAG, "detected RIGHT Gesture on Pointer: "+ i);
-                valid = true;
-            }
-            break;
         }
         return valid;
     }

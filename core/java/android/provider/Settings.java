@@ -4127,6 +4127,12 @@ public final class Settings {
         public static final String CARBON_CUSTOM_GESTURE_FINGERS = "carbon_custom_gesture_fingers";
 
         /**
+         * CarbonGestures defaults for navigation
+         * @hide
+         */
+        public static final String CARBON_CUSTOM_NAVIGATION_GESTURE = "carbon_custom_navigation_gesture";
+
+        /**
          * right gesture for CarbonGestures
          * @hide
          */

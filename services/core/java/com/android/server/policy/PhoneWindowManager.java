@@ -1133,6 +1133,9 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                     Settings.Secure.NAVIGATION_BAR_ENABLED), false, this,
                     UserHandle.USER_ALL);
             resolver.registerContentObserver(Settings.System.getUriFor(
+                    Settings.System.CARBON_CUSTOM_NAVIGATION_GESTURE), false, this,
+                    UserHandle.USER_ALL);
+            resolver.registerContentObserver(Settings.System.getUriFor(
                     Settings.System.CARBON_CUSTOM_GESTURE_FINGERS), false, this,
                     UserHandle.USER_ALL);
             resolver.registerContentObserver(Settings.System.getUriFor(
@@ -1252,6 +1255,10 @@ public class PhoneWindowManager implements WindowManagerPolicy {
     private ImmersiveModeConfirmation mImmersiveModeConfirmation;
 
     private SystemGesturesPointerEventListener mSystemGestures;
+    private CarbonGesturesListener mCarbonNavigationGesturesRight;
+    private CarbonGesturesListener mCarbonNavigationGesturesLeft;
+    private CarbonGesturesListener mCarbonNavigationGesturesUp;
+    private CarbonGesturesListener mCarbonNavigationGesturesDown;
     private CarbonGesturesListener mCarbonGesturesRight;
     private CarbonGesturesListener mCarbonGesturesLeft;
     private CarbonGesturesListener mCarbonGesturesUp;
@@ -2538,8 +2545,8 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                 com.android.internal.R.integer.config_navBarOpacityMode);
     }
 
-    private CarbonGesturesListener initCarbonGesture(int fingers, int keycode, CarbonGesturesListener.Directions direction) {
-        return new CarbonGesturesListener(mContext, fingers, direction, new CarbonGesturesListener.Callbacks() {
+    private CarbonGesturesListener initCarbonGesture(int fingers, int keycode, CarbonGesturesListener.Directions direction, int navigation) {
+        return new CarbonGesturesListener(mContext, fingers, direction, navigation, new CarbonGesturesListener.Callbacks() {
             @Override
             public void onSwipeGesture() {
                 triggerVirtualKeypress(mContext, keycode);
@@ -2585,7 +2592,7 @@ public class PhoneWindowManager implements WindowManagerPolicy {
         });
     }
 
-    private CarbonGesturesListener handleCarbonGesture(CarbonGesturesListener gesture, int fingers, int value, CarbonGesturesListener.Directions direction, String pkg) {
+    private CarbonGesturesListener handleCarbonGesture(CarbonGesturesListener gesture, int fingers, int value, CarbonGesturesListener.Directions direction, int navigation, String pkg) {
         if (haveEnabledCarbonGestures[direction.ordinal()] == value
                 && (carbonGesturePackages[direction.ordinal()] == null
                 ? pkg == null : carbonGesturePackages[direction.ordinal()].equals(pkg))) {
@@ -2609,7 +2616,7 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                     gesture = initCarbonLaunchPackageGesture(fingers, direction, pkg);
                     break;
                 default:
-                    gesture = initCarbonGesture(fingers, keyvalue, direction);
+                    gesture = initCarbonGesture(fingers, keyvalue, direction, navigation);
                     break;
             }
             mWindowManagerFuncs.registerPointerEventListener(gesture);
@@ -2756,39 +2763,54 @@ public class PhoneWindowManager implements WindowManagerPolicy {
             }
 
             // Carbon Navigaton Gestures
+            int carbonCustomNavigationGesture = Settings.System.getIntForUser(resolver,
+                    Settings.System.CARBON_CUSTOM_NAVIGATION_GESTURE, 0, UserHandle.USER_CURRENT);
+
+            int carbonNavigationGestureRight = 1;
+            int carbonNavigationGestureLeft = 1;
+            int carbonNavigationGestureUp = 1;
+            if (carbonCustomNavigationGesture != 0) {
+                carbonNavigationGestureRight += KeyEvent.KEYCODE_APP_SWITCH;
+                carbonNavigationGestureLeft += KeyEvent.KEYCODE_BACK;
+                carbonNavigationGestureUp += KeyEvent.KEYCODE_HOME;
+            }
+
+            mCarbonNavigationGesturesRight = handleCarbonGesture(mCarbonNavigationGesturesRight,
+                    carbonCustomGestureFingers, carbonNavigationGestureRight,
+                    CarbonGesturesListener.Directions.RIGHT, carbonCustomNavigationGesture, null);
+            mCarbonNavigationGesturesLeft = handleCarbonGesture(mCarbonNavigationGesturesLeft,
+                    carbonCustomGestureFingers, carbonNavigationGestureLeft,
+                    CarbonGesturesListener.Directions.LEFT, carbonCustomNavigationGesture, null);
+            mCarbonNavigationGesturesUp = handleCarbonGesture(mCarbonNavigationGesturesUp,
+                    carbonCustomGestureFingers, carbonNavigationGestureLeft,
+                    CarbonGesturesListener.Directions.UP, carbonCustomNavigationGesture, null);
+
             int carbonCustomGestureFingers = Settings.System.getIntForUser(resolver,
                     Settings.System.CARBON_CUSTOM_GESTURE_FINGERS, 2, UserHandle.USER_CURRENT);
-            String carbonCustomGestureRightPkg = Settings.System.getStringForUser(resolver,
-                Settings.System.CARBON_CUSTOM_GESTURE_PACKAGE_RIGHT, UserHandle.USER_CURRENT);
+
             int carbonCustomGestureRight = Settings.System.getIntForUser(resolver,
                     Settings.System.CARBON_CUSTOM_GESTURE_RIGHT, 0, UserHandle.USER_CURRENT);
             mCarbonGesturesRight = handleCarbonGesture(mCarbonGesturesRight,
                 carbonCustomGestureFingers, carbonCustomGestureRight + carbonCustomGestureFingers,
-                CarbonGesturesListener.Directions.RIGHT, carbonCustomGestureRightPkg);
+                CarbonGesturesListener.Directions.RIGHT, carbonCustomNavigationGesture, carbonCustomGestureRightPkg);
 
-            String carbonCustomGestureLeftPkg = Settings.System.getStringForUser(resolver,
-                    Settings.System.CARBON_CUSTOM_GESTURE_PACKAGE_LEFT, UserHandle.USER_CURRENT);
             int carbonCustomGestureLeft = Settings.System.getIntForUser(resolver,
                     Settings.System.CARBON_CUSTOM_GESTURE_LEFT, 0, UserHandle.USER_CURRENT);
             mCarbonGesturesLeft = handleCarbonGesture(mCarbonGesturesLeft,
                 carbonCustomGestureFingers, carbonCustomGestureLeft + carbonCustomGestureFingers,
-                CarbonGesturesListener.Directions.LEFT, carbonCustomGestureLeftPkg);
+                CarbonGesturesListener.Directions.LEFT, carbonCustomNavigationGesture, carbonCustomGestureLeftPkg);
 
-            String carbonCustomGestureUpPkg = Settings.System.getStringForUser(resolver,
-                    Settings.System.CARBON_CUSTOM_GESTURE_PACKAGE_UP, UserHandle.USER_CURRENT);
             int carbonCustomGestureUp = Settings.System.getIntForUser(resolver,
                     Settings.System.CARBON_CUSTOM_GESTURE_UP, 0, UserHandle.USER_CURRENT);
             mCarbonGesturesUp = handleCarbonGesture(mCarbonGesturesUp,
                 carbonCustomGestureFingers, carbonCustomGestureUp + carbonCustomGestureFingers,
-                CarbonGesturesListener.Directions.UP, carbonCustomGestureUpPkg);
+                CarbonGesturesListener.Directions.UP, carbonCustomNavigationGesture, carbonCustomGestureUpPkg);
 
-            String carbonCustomGestureDownPkg = Settings.System.getStringForUser(resolver,
-                    Settings.System.CARBON_CUSTOM_GESTURE_PACKAGE_DOWN, UserHandle.USER_CURRENT);
             int carbonCustomGestureDown = Settings.System.getIntForUser(resolver,
                     Settings.System.CARBON_CUSTOM_GESTURE_DOWN, 0, UserHandle.USER_CURRENT);
             mCarbonGesturesDown = handleCarbonGesture(mCarbonGesturesDown,
                 carbonCustomGestureFingers, carbonCustomGestureDown + carbonCustomGestureFingers,
-                CarbonGesturesListener.Directions.DOWN, carbonCustomGestureDownPkg);
+                CarbonGesturesListener.Directions.DOWN, carbonCustomNavigationGesture, carbonCustomGestureDownPkg);
 
             // Configure rotation lock.
             int userRotation = Settings.System.getIntForUser(resolver,
