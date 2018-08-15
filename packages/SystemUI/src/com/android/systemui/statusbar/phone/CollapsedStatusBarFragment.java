@@ -269,9 +269,6 @@ public class CollapsedStatusBarFragment extends Fragment implements CommandQueue
         if (((Clock)mRightClock).isEnabled()) {
             animateHide(mRightClock, animate, true);
         }
-        if (((Clock)mClockView).isEnabled()) {
-            animateHide(mClockView, animate, true);
-        }
     }
 
     public void showNotificationIconArea(boolean animate) {
@@ -279,9 +276,6 @@ public class CollapsedStatusBarFragment extends Fragment implements CommandQueue
         animateShow(mCenterClockLayout, animate);
         if (((Clock)mRightClock).isEnabled()) {
             animateShow(mRightClock, animate);
-        }
-        if (((Clock)mClockView).isEnabled()) {
-            animateShow(mClockView, animate);
         }
     }
 
