@@ -22,6 +22,7 @@ import android.util.ArraySet;
 import android.util.AttributeSet;
 import com.android.internal.logging.MetricsLogger;
 import com.android.internal.logging.nano.MetricsProto.MetricsEvent;
+import com.android.settingslib.graph.BatteryMeterDrawableBase;
 import com.android.systemui.Dependency;
 import com.android.systemui.statusbar.phone.StatusBarIconController;
 
@@ -49,7 +50,7 @@ public class BatteryPreference extends DropDownPreference implements TunerServic
     public void onAttached() {
         super.onAttached();
         mHasPercentage = Settings.System.getInt(getContext().getContentResolver(),
-                SHOW_BATTERY_PERCENT, 0) != 0;
+                SHOW_BATTERY_PERCENT, 0) != BatteryMeterDrawableBase.BATTERY_PERCENT_HIDDEN;
         Dependency.get(TunerService.class).addTunable(this, StatusBarIconController.ICON_BLACKLIST);
     }
 

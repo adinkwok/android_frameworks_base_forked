@@ -44,6 +44,12 @@ public class BatteryMeterDrawableBase extends Drawable {
     public static final String TAG = BatteryMeterDrawableBase.class.getSimpleName();
     private static final float RADIUS_RATIO = 1.0f / 17f;
 
+    public static final int BATTERY_ICON_HIDDEN = 0;
+    public static final int BATTERY_ICON_PORTRAIT = 1;
+
+    public static final int BATTERY_PERCENT_HIDDEN = 0;
+    public static final int BATTERY_PERCENT_BESIDE = 1;
+
     protected final Context mContext;
     protected final Paint mFramePaint;
     protected final Paint mBatteryPaint;

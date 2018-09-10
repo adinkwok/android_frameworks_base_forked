@@ -17,8 +17,8 @@ package com.android.systemui;
 
 import static android.app.StatusBarManager.DISABLE2_SYSTEM_ICONS;
 import static android.app.StatusBarManager.DISABLE_NONE;
-import static android.provider.Settings.System.SHOW_BATTERY_IMAGE;
 import static android.provider.Settings.System.SHOW_BATTERY_PERCENT;
+import static android.provider.Settings.System.STATUS_BAR_BATTERY_ICON;
 
 import android.animation.ArgbEvaluator;
 import android.app.ActivityManager;
@@ -225,7 +225,7 @@ public class BatteryMeterView extends LinearLayout implements
                 Settings.System.getUriFor(SHOW_BATTERY_PERCENT), false, mSettingObserver, mUser);
         updateShowPercent();
         getContext().getContentResolver().registerContentObserver(
-                Settings.System.getUriFor(SHOW_BATTERY_IMAGE), false, mSettingObserver);
+                Settings.System.getUriFor(STATUS_BAR_BATTERY_ICON), false, mSettingObserver);
         updateShowImage();
         Dependency.get(ConfigurationController.class).addCallback(this);
         mUserTracker.startTracking();
@@ -264,7 +264,7 @@ public class BatteryMeterView extends LinearLayout implements
         mBatteryPercentView.setText(
                 NumberFormat.getPercentInstance().format(mLevel / 100f));
         final boolean showImage = Settings.System.getInt(getContext().getContentResolver(),
-                SHOW_BATTERY_IMAGE, 1) == 1;
+                STATUS_BAR_BATTERY_ICON, 1) == BatteryMeterDrawableBase.BATTERY_ICON_PORTRAIT;
         if (!showImage && mPowerSaveEnabled && !mCharging) {
             mBatteryPercentView.setTextColor(mDrawable.getPowersaveColor());
         } else if (mTextColor != 0) {
@@ -274,13 +274,13 @@ public class BatteryMeterView extends LinearLayout implements
 
     private void updateShowPercent() {
         final boolean showPercent = Settings.System.getInt(getContext().getContentResolver(),
-                SHOW_BATTERY_PERCENT, 0) != 0;
+                SHOW_BATTERY_PERCENT, 0) != BatteryMeterDrawableBase.BATTERY_PERCENT_HIDDEN;
         mBatteryPercentView.setVisibility((showPercent || mForceShowPercent) ? View.VISIBLE : View.GONE);
     }
 
     private void updateShowImage() {
         final boolean showImage = Settings.System.getInt(getContext().getContentResolver(),
-                SHOW_BATTERY_IMAGE, 1) == 1;
+                STATUS_BAR_BATTERY_ICON, 1) == BatteryMeterDrawableBase.BATTERY_ICON_PORTRAIT;
         mBatteryIconView.setVisibility(showImage ? View.VISIBLE : View.GONE);
     }
 

@@ -4107,24 +4107,28 @@ public final class Settings {
         };
 
         /**
-         * Setting to determine whether or not to show the battery percentage in the status bar.
+         * Setting to determine where to show the battery percentage in the status bar.
          *    0 - Don't show percentage
-         *    1 - Show percentage
+         *    1 - Show percentage beside
          * @hide
          */
         public static final String SHOW_BATTERY_PERCENT = "status_bar_show_battery_percent";
 
         /** @hide */
-        private static final Validator SHOW_BATTERY_PERCENT_VALIDATOR = BOOLEAN_VALIDATOR;
+        private static final Validator SHOW_BATTERY_PERCENT_VALIDATOR =
+                new SettingsValidators.InclusiveIntegerRangeValidator(0, 1);
 
         /**
+         * Setting to determine what battery image to show in the status bar.
+         *    0 - Don't show battery icon
+         *    1 - Show portrait battery icon
          * @hide
          */
-        public static final String SHOW_BATTERY_IMAGE = "status_bar_show_battery_image";
+        public static final String STATUS_BAR_BATTERY_ICON = "status_bar_battery_icon";
 
         /** @hide */
-        private static final Validator SHOW_BATTERY_IMAGE_VALIDATOR =
-                BOOLEAN_VALIDATOR;
+        private static final Validator STATUS_BAR_BATTERY_ICON_VALIDATOR =
+                new SettingsValidators.InclusiveIntegerRangeValidator(0, 1);
 
         /**
          * IMPORTANT: If you add a new public settings you also have to add it to
@@ -4471,7 +4475,7 @@ public final class Settings {
             STATUSBAR_CLOCK_DATE_DISPLAY,
             STATUSBAR_CLOCK_DATE_STYLE,
             STATUSBAR_CLOCK_DATE_FORMAT,
-            SHOW_BATTERY_IMAGE,
+            STATUS_BAR_BATTERY_ICON,
         };
 
         /**
@@ -4596,7 +4600,7 @@ public final class Settings {
             PRIVATE_SETTINGS.add(STATUSBAR_CLOCK_DATE_DISPLAY);
             PRIVATE_SETTINGS.add(STATUSBAR_CLOCK_DATE_STYLE);
             PRIVATE_SETTINGS.add(STATUSBAR_CLOCK_DATE_FORMAT);
-            PRIVATE_SETTINGS.add(SHOW_BATTERY_IMAGE);
+            PRIVATE_SETTINGS.add(STATUS_BAR_BATTERY_ICON);
         }
 
         /**
@@ -4692,7 +4696,7 @@ public final class Settings {
             VALIDATORS.put(STATUSBAR_CLOCK_DATE_DISPLAY, STATUSBAR_CLOCK_DATE_DISPLAY_VALIDATOR);
             VALIDATORS.put(STATUSBAR_CLOCK_DATE_STYLE, STATUSBAR_CLOCK_DATE_STYLE_VALIDATOR);
             VALIDATORS.put(STATUSBAR_CLOCK_DATE_FORMAT, STATUSBAR_CLOCK_DATE_FORMAT_VALIDATOR);
-            VALIDATORS.put(SHOW_BATTERY_IMAGE, SHOW_BATTERY_IMAGE_VALIDATOR);
+            VALIDATORS.put(STATUS_BAR_BATTERY_ICON, STATUS_BAR_BATTERY_ICON_VALIDATOR);
         }
 
         /**
