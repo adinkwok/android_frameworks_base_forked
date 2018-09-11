@@ -276,8 +276,10 @@ public class BatteryMeterView extends LinearLayout implements
     }
 
     private void updateShowPercent() {
-        final boolean showPercent = Settings.System.getInt(getContext().getContentResolver(),
-                SHOW_BATTERY_PERCENT, 0) != BatteryMeterDrawableBase.BATTERY_PERCENT_HIDDEN;
+        final boolean showPercent = (Settings.System.getInt(getContext().getContentResolver(),
+                SHOW_BATTERY_PERCENT, 0) == BatteryMeterDrawableBase.BATTERY_PERCENT_BESIDE) ||
+                (Settings.System.getInt(getContext().getContentResolver(), STATUS_BAR_BATTERY_ICON, 1) ==
+                BatteryMeterDrawableBase.BATTERY_ICON_TEXT);
         mBatteryPercentView.setVisibility((showPercent || mForceShowPercent) ? View.VISIBLE : View.GONE);
         mBatteryPercentView.setPadding(mShowBatteryImage ? mBatteryPercentPadding : 0, 0, 0, 0);
     }

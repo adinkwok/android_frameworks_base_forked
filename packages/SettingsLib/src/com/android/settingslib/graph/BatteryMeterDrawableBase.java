@@ -46,6 +46,7 @@ public class BatteryMeterDrawableBase extends Drawable {
 
     public static final int BATTERY_ICON_HIDDEN = 0;
     public static final int BATTERY_ICON_PORTRAIT = 1;
+    public static final int BATTERY_ICON_TEXT = 2;
 
     public static final int BATTERY_PERCENT_HIDDEN = 0;
     public static final int BATTERY_PERCENT_BESIDE = 1;

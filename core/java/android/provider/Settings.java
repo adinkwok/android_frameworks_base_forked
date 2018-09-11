@@ -4122,13 +4122,14 @@ public final class Settings {
          * Setting to determine what battery image to show in the status bar.
          *    0 - Don't show battery icon
          *    1 - Show portrait battery icon
+         *    2 - Show battery percentage text
          * @hide
          */
         public static final String STATUS_BAR_BATTERY_ICON = "status_bar_battery_icon";
 
         /** @hide */
         private static final Validator STATUS_BAR_BATTERY_ICON_VALIDATOR =
-                new SettingsValidators.InclusiveIntegerRangeValidator(0, 1);
+                new SettingsValidators.InclusiveIntegerRangeValidator(0, 2);
 
         /**
          * IMPORTANT: If you add a new public settings you also have to add it to
