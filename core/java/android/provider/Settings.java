@@ -4109,27 +4109,30 @@ public final class Settings {
         /**
          * Setting to determine where to show the battery percentage in the status bar.
          *    0 - Don't show percentage
-         *    1 - Show percentage beside
+         *    1 - Show percentage beside the battery icon
+         *    2 - Show percentage inside the battery icon
          * @hide
          */
         public static final String SHOW_BATTERY_PERCENT = "status_bar_show_battery_percent";
 
         /** @hide */
         private static final Validator SHOW_BATTERY_PERCENT_VALIDATOR =
-                new SettingsValidators.InclusiveIntegerRangeValidator(0, 1);
+                new SettingsValidators.InclusiveIntegerRangeValidator(0, 2);
 
         /**
          * Setting to determine what battery image to show in the status bar.
          *    0 - Don't show battery icon
          *    1 - Show portrait battery icon
-         *    2 - Show battery percentage text
+         *    2 - Show landscape battery icon
+         *    3 - Show solid circle icon
+         *    4 - Show battery percentage text
          * @hide
          */
         public static final String STATUS_BAR_BATTERY_ICON = "status_bar_battery_icon";
 
         /** @hide */
         private static final Validator STATUS_BAR_BATTERY_ICON_VALIDATOR =
-                new SettingsValidators.InclusiveIntegerRangeValidator(0, 2);
+                new SettingsValidators.InclusiveIntegerRangeValidator(0, 4);
 
         /**
          * IMPORTANT: If you add a new public settings you also have to add it to

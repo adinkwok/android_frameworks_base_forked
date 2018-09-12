@@ -63,7 +63,7 @@ import java.util.Locale;
 public class BatteryMeterView extends LinearLayout implements
         BatteryStateChangeCallback, Tunable, DarkReceiver, ConfigurationListener {
 
-    private final BatteryMeterDrawableBase mDrawable;
+    private BatteryMeterDrawableBase mDrawable;
     private final String mSlotBattery;
     private final ImageView mBatteryIconView;
     private final CurrentUserTracker mUserTracker;
@@ -82,6 +82,9 @@ public class BatteryMeterView extends LinearLayout implements
     private int mLightModeFillColor;
     private float mDarkIntensity;
     private int mUser;
+
+    private final Context mContext;
+    private final int mFrameColor;
 
     /**
      * Whether we should use colors that adapt based on wallpaper/the scrim behind quick settings.
@@ -106,6 +109,7 @@ public class BatteryMeterView extends LinearLayout implements
 
     public BatteryMeterView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
+        mContext = context;
 
         setOrientation(LinearLayout.HORIZONTAL);
         setGravity(Gravity.CENTER_VERTICAL | Gravity.START);
@@ -114,6 +118,7 @@ public class BatteryMeterView extends LinearLayout implements
                 defStyle, 0);
         final int frameColor = atts.getColor(R.styleable.BatteryMeterView_frameColor,
                 context.getColor(R.color.meter_background_color));
+        mFrameColor = frameColor;
         mDrawable = new BatteryMeterDrawableBase(context, frameColor);
         atts.recycle();
 
@@ -276,17 +281,22 @@ public class BatteryMeterView extends LinearLayout implements
     }
 
     private void updateShowPercent() {
-        final boolean showPercent = (Settings.System.getInt(getContext().getContentResolver(),
-                SHOW_BATTERY_PERCENT, 0) == BatteryMeterDrawableBase.BATTERY_PERCENT_BESIDE) ||
-                (Settings.System.getInt(getContext().getContentResolver(), STATUS_BAR_BATTERY_ICON, 1) ==
-                BatteryMeterDrawableBase.BATTERY_ICON_TEXT);
-        mBatteryPercentView.setVisibility((showPercent || mForceShowPercent) ? View.VISIBLE : View.GONE);
+        int showBatteryPercent = Settings.System.getInt(getContext().getContentResolver(),
+                SHOW_BATTERY_PERCENT, 0);
+        final boolean showPercentBeside = showBatteryPercent == BatteryMeterDrawableBase.BATTERY_PERCENT_BESIDE ||
+                Settings.System.getInt(getContext().getContentResolver(), STATUS_BAR_BATTERY_ICON, 1) ==
+                        BatteryMeterDrawableBase.BATTERY_ICON_TEXT;
+        mBatteryPercentView.setVisibility((showPercentBeside || mForceShowPercent) ? View.VISIBLE : View.GONE);
         mBatteryPercentView.setPadding(mShowBatteryImage ? mBatteryPercentPadding : 0, 0, 0, 0);
+        mDrawable.setShowPercent(showBatteryPercent == BatteryMeterDrawableBase.BATTERY_PERCENT_INSIDE);
     }
 
     private void updateShowImage() {
-        mShowBatteryImage = Settings.System.getInt(getContext().getContentResolver(),
-                STATUS_BAR_BATTERY_ICON, 1) == BatteryMeterDrawableBase.BATTERY_ICON_PORTRAIT;
+        int statusBarBatteryIcon = Settings.System.getInt(getContext().getContentResolver(),
+                STATUS_BAR_BATTERY_ICON, 1);
+        mDrawable.setMeterStyle(statusBarBatteryIcon);
+        mShowBatteryImage = statusBarBatteryIcon != BatteryMeterDrawableBase.BATTERY_ICON_HIDDEN
+                && statusBarBatteryIcon != BatteryMeterDrawableBase.BATTERY_ICON_TEXT;
         mBatteryIconView.setVisibility(mShowBatteryImage ? View.VISIBLE : View.GONE);
         mBatteryPercentView.setPadding(mShowBatteryImage ? mBatteryPercentPadding : 0, 0, 0, 0);
     }
