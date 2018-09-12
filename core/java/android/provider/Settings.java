@@ -4125,14 +4125,15 @@ public final class Settings {
          *    1 - Show portrait battery icon
          *    2 - Show landscape battery icon
          *    3 - Show solid circle icon
-         *    4 - Show battery percentage text
+         *    4 - Show dotted circle icon
+         *    5 - Show battery percentage text
          * @hide
          */
         public static final String STATUS_BAR_BATTERY_ICON = "status_bar_battery_icon";
 
         /** @hide */
         private static final Validator STATUS_BAR_BATTERY_ICON_VALIDATOR =
-                new SettingsValidators.InclusiveIntegerRangeValidator(0, 4);
+                new SettingsValidators.InclusiveIntegerRangeValidator(0, 5);
 
         /**
          * IMPORTANT: If you add a new public settings you also have to add it to
