@@ -96,6 +96,7 @@ public class BatteryMeterView extends LinearLayout implements
     private boolean mPowerSaveEnabled;
     private boolean mCharging;
 
+    private int mBatteryIcon;
     private int mBatteryPercentPadding;
     private boolean mShowBatteryImage;
 
@@ -131,11 +132,18 @@ public class BatteryMeterView extends LinearLayout implements
                 com.android.internal.R.string.status_bar_battery);
         mBatteryIconView = new ImageView(context);
         mBatteryIconView.setImageDrawable(mDrawable);
+        mBatteryIcon = Settings.System.getInt(getContext().getContentResolver(),
+                STATUS_BAR_BATTERY_ICON, BatteryMeterDrawableBase.BATTERY_ICON_PORTRAIT);
+        boolean isStatusBarPortraitBatteryIcon = mBatteryIcon == BatteryMeterDrawableBase.BATTERY_ICON_PORTRAIT;
         final MarginLayoutParams mlp = new MarginLayoutParams(
-                getResources().getDimensionPixelSize(R.dimen.status_bar_battery_icon_width),
+                isStatusBarPortraitBatteryIcon ? getResources().getDimensionPixelSize(R.dimen.status_bar_portrait_battery_icon_width)
+                        : getResources().getDimensionPixelSize(R.dimen.status_bar_battery_icon_width),
                 getResources().getDimensionPixelSize(R.dimen.status_bar_battery_icon_height));
         mlp.setMargins(0, 0, 0,
                 getResources().getDimensionPixelOffset(R.dimen.battery_margin_bottom));
+        if (isStatusBarPortraitBatteryIcon) {
+            mBatteryIconView.setScaleType(ImageView.ScaleType.CENTER_CROP);
+        }
         addView(mBatteryIconView, mlp);
 
         mBatteryPercentView = (TextView) LayoutInflater.from(getContext())
@@ -284,21 +292,18 @@ public class BatteryMeterView extends LinearLayout implements
         int showBatteryPercent = Settings.System.getInt(getContext().getContentResolver(),
                 SHOW_BATTERY_PERCENT, 0);
         final boolean showPercentBeside = showBatteryPercent == BatteryMeterDrawableBase.BATTERY_PERCENT_BESIDE ||
-                Settings.System.getInt(getContext().getContentResolver(), STATUS_BAR_BATTERY_ICON, 1) ==
-                        BatteryMeterDrawableBase.BATTERY_ICON_TEXT;
+                mBatteryIcon == BatteryMeterDrawableBase.BATTERY_ICON_TEXT;
         mBatteryPercentView.setVisibility((showPercentBeside || mForceShowPercent) ? View.VISIBLE : View.GONE);
         mBatteryPercentView.setPadding(mShowBatteryImage ? mBatteryPercentPadding : 0, 0, 0, 0);
         mDrawable.setShowPercent(showBatteryPercent == BatteryMeterDrawableBase.BATTERY_PERCENT_INSIDE);
     }
 
     private void updateShowImage() {
-        int statusBarBatteryIcon = Settings.System.getInt(getContext().getContentResolver(),
-                STATUS_BAR_BATTERY_ICON, 1);
         int showBatteryPercent = Settings.System.getInt(getContext().getContentResolver(),
                 SHOW_BATTERY_PERCENT, 0);
-        mDrawable.setMeterStyle(statusBarBatteryIcon);
-        mShowBatteryImage = statusBarBatteryIcon != BatteryMeterDrawableBase.BATTERY_ICON_HIDDEN
-                && statusBarBatteryIcon != BatteryMeterDrawableBase.BATTERY_ICON_TEXT
+        mDrawable.setMeterStyle(mBatteryIcon);
+        mShowBatteryImage = mBatteryIcon != BatteryMeterDrawableBase.BATTERY_ICON_HIDDEN
+                && mBatteryIcon != BatteryMeterDrawableBase.BATTERY_ICON_TEXT
                 && showBatteryPercent != BatteryMeterDrawableBase.BATTERY_PERCENT_INSIDE;
         mBatteryIconView.setVisibility(mShowBatteryImage ? View.VISIBLE : View.GONE);
         mBatteryPercentView.setPadding(mShowBatteryImage ? mBatteryPercentPadding : 0, 0, 0, 0);
@@ -306,13 +311,14 @@ public class BatteryMeterView extends LinearLayout implements
 
     @Override
     public void onDensityOrFontScaleChanged() {
-        scaleBatteryMeterViews();
+        updateBatteryMeterViews(true);
     }
 
     /**
      * Looks up the scale factor for status bar icons and scales the battery view by that amount.
+     * If no change in scale factor, only update the battery icon view layout params.
      */
-    private void scaleBatteryMeterViews() {
+    private void updateBatteryMeterViews(boolean isDensityOrFontScaleChanged) {
         Resources res = getContext().getResources();
         TypedValue typedValue = new TypedValue();
 
@@ -321,6 +327,14 @@ public class BatteryMeterView extends LinearLayout implements
 
         int batteryHeight = res.getDimensionPixelSize(R.dimen.status_bar_battery_icon_height);
         int batteryWidth = res.getDimensionPixelSize(R.dimen.status_bar_battery_icon_width);
+        mBatteryIcon = Settings.System.getInt(getContext().getContentResolver(),
+                STATUS_BAR_BATTERY_ICON, BatteryMeterDrawableBase.BATTERY_ICON_PORTRAIT);
+        if (mBatteryIcon == BatteryMeterDrawableBase.BATTERY_ICON_PORTRAIT) {
+            batteryWidth = res.getDimensionPixelSize(R.dimen.status_bar_portrait_battery_icon_width);
+            mBatteryIconView.setScaleType(ImageView.ScaleType.CENTER_CROP);
+        } else {
+            mBatteryIconView.setScaleType(ImageView.ScaleType.FIT_CENTER);
+        }
         int marginBottom = res.getDimensionPixelSize(R.dimen.battery_margin_bottom);
 
         LinearLayout.LayoutParams scaledLayoutParams = new LinearLayout.LayoutParams(
@@ -328,10 +342,13 @@ public class BatteryMeterView extends LinearLayout implements
         scaledLayoutParams.setMargins(0, 0, 0, marginBottom);
 
         mBatteryIconView.setLayoutParams(scaledLayoutParams);
-        FontSizeUtils.updateFontSize(mBatteryPercentView, R.dimen.qs_time_expanded_size);
 
-        mBatteryPercentPadding = res.getDimensionPixelSize(R.dimen.battery_level_padding_start);
-        updateShowPercent();
+        if (isDensityOrFontScaleChanged) {
+            FontSizeUtils.updateFontSize(mBatteryPercentView, R.dimen.qs_time_expanded_size);
+
+            mBatteryPercentPadding = res.getDimensionPixelSize(R.dimen.battery_level_padding_start);
+            updateShowPercent();
+        }
     }
 
     @Override
@@ -375,6 +392,7 @@ public class BatteryMeterView extends LinearLayout implements
         @Override
         public void onChange(boolean selfChange, Uri uri) {
             super.onChange(selfChange, uri);
+            updateBatteryMeterViews(false);
             updateShowPercent();
             updateShowImage();
             updatePercentText();

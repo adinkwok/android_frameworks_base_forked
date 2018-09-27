@@ -19,4 +19,6 @@
     <!-- QS tile height -->
     <dimen name="qs_tile_height_wo_label">48dp</dimen>
 
+    <dimen name="status_bar_portrait_battery_icon_width">8.5dp</dimen>
+
 </resources>
