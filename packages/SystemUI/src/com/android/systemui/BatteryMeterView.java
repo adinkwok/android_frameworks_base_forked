@@ -288,25 +288,28 @@ public class BatteryMeterView extends LinearLayout implements
         }
     }
 
-    private void updateShowPercent() {
-        int showBatteryPercent = Settings.System.getInt(getContext().getContentResolver(),
+    private void updateShowImage() {
+        int batteryPercentValue = Settings.System.getInt(getContext().getContentResolver(),
                 SHOW_BATTERY_PERCENT, 0);
-        final boolean showPercentBeside = showBatteryPercent == BatteryMeterDrawableBase.BATTERY_PERCENT_BESIDE ||
-                mBatteryIcon == BatteryMeterDrawableBase.BATTERY_ICON_TEXT;
-        mBatteryPercentView.setVisibility((showPercentBeside || mForceShowPercent) ? View.VISIBLE : View.GONE);
-        mBatteryPercentView.setPadding(mShowBatteryImage ? mBatteryPercentPadding : 0, 0, 0, 0);
-        mDrawable.setShowPercent(showBatteryPercent == BatteryMeterDrawableBase.BATTERY_PERCENT_INSIDE);
+        mShowBatteryImage = mBatteryIcon != BatteryMeterDrawableBase.BATTERY_ICON_HIDDEN
+                && mBatteryIcon != BatteryMeterDrawableBase.BATTERY_ICON_TEXT;
+        boolean showPercentagePadding = mShowBatteryImage
+                && batteryPercentValue == BatteryMeterDrawableBase.BATTERY_PERCENT_BESIDE;
+        mDrawable.setMeterStyle(mBatteryIcon);
+        mBatteryIconView.setVisibility(mShowBatteryImage ? View.VISIBLE : View.GONE);
+        mBatteryPercentView.setPadding(showPercentagePadding ? mBatteryPercentPadding : 0, 0, 0, 0);
     }
 
-    private void updateShowImage() {
-        int showBatteryPercent = Settings.System.getInt(getContext().getContentResolver(),
+    private void updateShowPercent() {
+        int batteryPercentValue = Settings.System.getInt(getContext().getContentResolver(),
                 SHOW_BATTERY_PERCENT, 0);
-        mDrawable.setMeterStyle(mBatteryIcon);
-        mShowBatteryImage = mBatteryIcon != BatteryMeterDrawableBase.BATTERY_ICON_HIDDEN
-                && mBatteryIcon != BatteryMeterDrawableBase.BATTERY_ICON_TEXT
-                && showBatteryPercent != BatteryMeterDrawableBase.BATTERY_PERCENT_INSIDE;
-        mBatteryIconView.setVisibility(mShowBatteryImage ? View.VISIBLE : View.GONE);
-        mBatteryPercentView.setPadding(mShowBatteryImage ? mBatteryPercentPadding : 0, 0, 0, 0);
+        boolean showPercentBeside = batteryPercentValue == BatteryMeterDrawableBase.BATTERY_PERCENT_BESIDE ||
+                mBatteryIcon == BatteryMeterDrawableBase.BATTERY_ICON_TEXT;
+        boolean showPercentagePadding = mShowBatteryImage
+                && batteryPercentValue == BatteryMeterDrawableBase.BATTERY_PERCENT_BESIDE;
+        mDrawable.setShowPercent(batteryPercentValue == BatteryMeterDrawableBase.BATTERY_PERCENT_INSIDE);
+        mBatteryPercentView.setVisibility((showPercentBeside || mForceShowPercent) ? View.VISIBLE : View.GONE);
+        mBatteryPercentView.setPadding(showPercentagePadding ? mBatteryPercentPadding : 0, 0, 0, 0);
     }
 
     @Override
