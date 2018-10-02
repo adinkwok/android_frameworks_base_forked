@@ -270,6 +270,7 @@ public class BatteryMeterView extends LinearLayout implements
         setContentDescription(
                 getContext().getString(charging ? R.string.accessibility_battery_level_charging
                         : R.string.accessibility_battery_level, level));
+        updateShowPercent();
     }
 
     @Override
@@ -301,6 +302,7 @@ public class BatteryMeterView extends LinearLayout implements
     private void updateShowPercent() {
         boolean showPercentView = mBatteryPercentValue == BatteryMeterDrawableBase.BATTERY_PERCENT_BESIDE
                 || mBatteryIconValue == BatteryMeterDrawableBase.BATTERY_ICON_TEXT
+                || (mCharging && mBatteryPercentValue != BatteryMeterDrawableBase.BATTERY_PERCENT_HIDDEN)
                 || mForceShowPercent;
         mDrawable.setShowPercent(mBatteryPercentValue == BatteryMeterDrawableBase.BATTERY_PERCENT_INSIDE);
         mBatteryPercentView.setVisibility(showPercentView ? View.VISIBLE : View.GONE);
