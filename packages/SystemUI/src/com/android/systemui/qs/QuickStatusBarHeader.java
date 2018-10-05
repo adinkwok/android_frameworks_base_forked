@@ -34,6 +34,7 @@ import android.net.Uri;
 import android.os.Handler;
 import android.provider.AlarmClock;
 import android.provider.CalendarContract;
+import android.provider.Settings;
 import android.service.notification.ZenModeConfig;
 import android.support.annotation.VisibleForTesting;
 import android.text.format.DateUtils;
@@ -48,6 +49,7 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.android.settingslib.Utils;
+import com.android.settingslib.graph.BatteryMeterDrawableBase;
 import com.android.systemui.BatteryMeterView;
 import com.android.systemui.Dependency;
 import com.android.systemui.Prefs;
@@ -181,7 +183,10 @@ public class QuickStatusBarHeader extends RelativeLayout implements
         mIconManager.setTint(fillColor);
 
         mBatteryMeterView = findViewById(R.id.battery);
-        mBatteryMeterView.setForceShowPercent(true);
+        boolean forceShowPercent = Settings.System.getInt(getContext().getContentResolver(),
+                Settings.System.SHOW_BATTERY_PERCENT, BatteryMeterDrawableBase.BATTERY_PERCENT_HIDDEN)
+                        != BatteryMeterDrawableBase.BATTERY_PERCENT_INSIDE;
+        if (forceShowPercent) mBatteryMeterView.setForceShowPercent(true);
         mBatteryMeterView.setOnClickListener(this);
         mClockView = findViewById(R.id.clock);
         mClockView.setOnClickListener(this);
